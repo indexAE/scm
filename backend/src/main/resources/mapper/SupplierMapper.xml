@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scm.mapper.SupplierMapper">
+    <!-- 获取所有供应商 -->
+    <select id="findAll" resultType="com.scm.entity.Supplier">
+        SELECT * FROM suppliers
+    </select>
+    
+    <!-- 根据ID获取供应商 -->
+    <select id="findById" resultType="com.scm.entity.Supplier">
+        SELECT * FROM suppliers WHERE id = #{id}
+    </select>
+    
+    <!-- 创建供应商 -->
+    <insert id="insert" parameterType="com.scm.entity.Supplier" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO suppliers (
+            name, contact, phone, email, address, status, remark, create_time, update_time
+        ) VALUES (
+            #{name}, #{contact}, #{phone}, #{email}, #{address}, #{status}, #{remark}, #{createTime}, #{updateTime}
+        )
+    </insert>
+    
+    <!-- 更新供应商 -->
+    <update id="update" parameterType="com.scm.entity.Supplier">
+        UPDATE suppliers
+        SET name = #{name},
+            contact = #{contact},
+            phone = #{phone},
+            email = #{email},
+            address = #{address},
+            status = #{status},
+            remark = #{remark},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除供应商 -->
+    <delete id="deleteById">
+        DELETE FROM suppliers WHERE id = #{id}
+    </delete>
+    
+    <!-- 更新供应商状态 -->
+    <update id="updateStatus">
+        UPDATE suppliers
+        SET status = #{status},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+</mapper> 

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scm.mapper.WarehouseMapper">
+    <sql id="Base_Column_List">
+        id, code, name, address, manager, contact, status, remark, create_time, update_time
+    </sql>
+
+    <select id="selectList" resultType="com.scm.entity.Warehouse">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM warehouse
+        <where>
+            <if test="name != null and name != ''">
+                AND name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="selectCount" resultType="int">
+        SELECT COUNT(1)
+        FROM warehouse
+        <where>
+            <if test="name != null and name != ''">
+                AND name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectById" resultType="com.scm.entity.Warehouse">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM warehouse
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="com.scm.entity.Warehouse">
+        INSERT INTO warehouse (
+            code, name, address, manager, contact, status, remark, create_time, update_time
+        ) VALUES (
+            #{code}, #{name}, #{address}, #{manager}, #{contact}, #{status}, #{remark}, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="update" parameterType="com.scm.entity.Warehouse">
+        UPDATE warehouse
+        <set>
+            <if test="code != null">code = #{code},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="manager != null">manager = #{manager},</if>
+            <if test="contact != null">contact = #{contact},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM warehouse WHERE id = #{id}
+    </delete>
+
+    <update id="updateStatus">
+        UPDATE warehouse
+        SET status = #{status},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+</mapper> 

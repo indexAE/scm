@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scm.mapper.PurchaseRequisitionMapper">
+    <resultMap id="BaseResultMap" type="com.scm.entity.PurchaseRequisition">
+        <id column="id" property="id"/>
+        <result column="code" property="code"/>
+        <result column="dealer_id" property="dealerId"/>
+        <result column="dealer" property="dealer"/>
+        <result column="amount" property="amount"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <collection property="items" javaType="java.util.List" ofType="com.scm.entity.PurchaseRequisitionItem">
+            <id column="item_id" property="id"/>
+            <result column="requisition_id" property="requisitionId"/>
+            <result column="requisition_code" property="requisitionCode"/>
+            <result column="product_id" property="productId"/>
+            <result column="product_name" property="productName"/>
+            <result column="product_spec" property="productSpec"/>
+            <result column="unit" property="unit"/>
+            <result column="quantity" property="quantity"/>
+            <result column="price" property="price"/>
+            <result column="item_amount" property="amount"/>
+            <result column="item_remark" property="remark"/>
+            <result column="item_create_time" property="createTime"/>
+            <result column="item_update_time" property="updateTime"/>
+        </collection>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        pr.id, pr.code, pr.dealer_id, pr.dealer, pr.amount, pr.status, pr.remark, pr.create_time, pr.update_time
+    </sql>
+
+    <sql id="Item_Column_List">
+        pri.id as item_id, pri.requisition_id, pri.requisition_code, pri.product_id, pri.product_name,
+        pri.product_spec, pri.unit, pri.quantity, pri.price, pri.amount as item_amount,
+        pri.remark as item_remark, pri.create_time as item_create_time, pri.update_time as item_update_time
+    </sql>
+
+    <insert id="insert" parameterType="com.scm.entity.PurchaseRequisition" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO purchase_requisition (
+            code, dealer_id, dealer, amount, status, remark
+        ) VALUES (
+            #{code}, #{dealerId}, #{dealer}, #{amount}, #{status}, #{remark}
+        )
+    </insert>
+
+    <insert id="insertItem" parameterType="com.scm.entity.PurchaseRequisitionItem" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO purchase_requisition_item (
+            requisition_id, requisition_code, product_id, product_name, product_spec,
+            unit, quantity, price, amount, remark
+        ) VALUES (
+            #{requisitionId}, #{requisitionCode}, #{productId}, #{productName}, #{productSpec},
+            #{unit}, #{quantity}, #{price}, #{amount}, #{remark}
+        )
+    </insert>
+
+    <insert id="batchInsertItems" parameterType="java.util.List">
+        INSERT INTO purchase_requisition_item (
+            requisition_id, requisition_code, product_id, product_name, product_spec,
+            unit, quantity, price, amount, remark
+        ) VALUES
+        <foreach collection="items" item="item" separator=",">
+        (
+            #{item.requisitionId}, #{item.requisitionCode}, #{item.productId}, #{item.productName}, #{item.productSpec},
+            #{item.unit}, #{item.quantity}, #{item.price}, #{item.amount}, #{item.remark}
+        )
+        </foreach>
+    </insert>
+
+    <update id="update" parameterType="com.scm.entity.PurchaseRequisition">
+        UPDATE purchase_requisition
+        SET dealer_id = #{dealerId},
+            dealer = #{dealer},
+            amount = #{amount},
+            status = #{status},
+            remark = #{remark}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateItem" parameterType="com.scm.entity.PurchaseRequisitionItem">
+        UPDATE purchase_requisition_item
+        SET quantity = #{quantity},
+            price = #{price},
+            amount = #{amount},
+            remark = #{remark}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM purchase_requisition WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteItemsByRequisitionId">
+        DELETE FROM purchase_requisition_item WHERE requisition_id = #{requisitionId}
+    </delete>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT 
+            <include refid="Base_Column_List"/>,
+            <include refid="Item_Column_List"/>
+        FROM purchase_requisition pr
+        LEFT JOIN purchase_requisition_item pri ON pr.id = pri.requisition_id
+        WHERE pr.id = #{id}
+    </select>
+
+    <select id="selectByCode" resultMap="BaseResultMap">
+        SELECT 
+            pr.<include refid="Base_Column_List"/>,
+            <include refid="Item_Column_List"/>
+        FROM purchase_requisition pr
+        LEFT JOIN purchase_requisition_item pri ON pr.id = pri.requisition_id
+        WHERE pr.code = #{code}
+    </select>
+
+    <select id="selectItemsByRequisitionId" resultType="com.scm.entity.PurchaseRequisitionItem">
+        SELECT id, requisition_id, requisition_code, product_id, product_name, product_spec,
+               unit, quantity, price, amount, remark, create_time, update_time
+        FROM purchase_requisition_item
+        WHERE requisition_id = #{requisitionId}
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT 
+            <include refid="Base_Column_List"/>
+        FROM purchase_requisition pr
+        <where>
+            <if test="code != null and code != ''">
+                AND pr.code LIKE CONCAT('%', #{code}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND pr.status = #{status}
+            </if>
+        </where>
+        ORDER BY pr.create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="selectCount" resultType="int">
+        SELECT COUNT(*)
+        FROM purchase_requisition
+        <where>
+            <if test="code != null and code != ''">
+                AND code LIKE CONCAT('%', #{code}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <update id="updateStatus">
+        UPDATE purchase_requisition
+        SET status = #{status},
+            remark = #{remark},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+</mapper> 

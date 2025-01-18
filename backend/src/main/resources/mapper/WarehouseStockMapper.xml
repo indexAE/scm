@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scm.mapper.WarehouseStockMapper">
+    
+    <resultMap id="BaseResultMap" type="com.scm.entity.WarehouseStock">
+        <id column="id" property="id" />
+        <result column="warehouse_id" property="warehouseId" />
+        <result column="warehouse" property="warehouse" />
+        <result column="product_id" property="productId" />
+        <result column="product_code" property="productCode" />
+        <result column="product_name" property="productName" />
+        <result column="product_spec" property="productSpec" />
+        <result column="unit" property="unit" />
+        <result column="quantity" property="quantity" />
+        <result column="min_stock" property="minStock" />
+        <result column="max_stock" property="maxStock" />
+        <result column="stock_status" property="stockStatus" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        s.id, s.warehouse_id, w.name as warehouse, s.product_id, p.code as product_code,
+        p.name as product_name, p.spec as product_spec, p.unit,
+        s.quantity, s.min_stock, s.max_stock,
+        CASE 
+            WHEN s.quantity &lt; s.min_stock THEN 'shortage'
+            WHEN s.quantity &gt; s.max_stock THEN 'overstock'
+            ELSE 'normal'
+        END as stock_status,
+        s.create_time, s.update_time
+    </sql>
+    
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM warehouse_stock s
+        LEFT JOIN warehouse w ON s.warehouse_id = w.id
+        LEFT JOIN product p ON s.product_id = p.id
+        <where>
+            <if test="warehouseId != null">
+                AND s.warehouse_id = #{warehouseId}
+            </if>
+            <if test="productName != null and productName != ''">
+                AND p.name LIKE CONCAT('%', #{productName}, '%')
+            </if>
+            <if test="stockStatus != null and stockStatus != ''">
+                AND CASE 
+                    WHEN s.quantity &lt; s.min_stock THEN 'shortage'
+                    WHEN s.quantity &gt; s.max_stock THEN 'overstock'
+                    ELSE 'normal'
+                END = #{stockStatus}
+            </if>
+        </where>
+        ORDER BY s.create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+    
+    <select id="selectCount" resultType="int">
+        SELECT COUNT(1)
+        FROM warehouse_stock s
+        LEFT JOIN warehouse w ON s.warehouse_id = w.id
+        LEFT JOIN product p ON s.product_id = p.id
+        <where>
+            <if test="warehouseId != null">
+                AND s.warehouse_id = #{warehouseId}
+            </if>
+            <if test="productName != null and productName != ''">
+                AND p.name LIKE CONCAT('%', #{productName}, '%')
+            </if>
+            <if test="stockStatus != null and stockStatus != ''">
+                AND CASE 
+                    WHEN s.quantity &lt; s.min_stock THEN 'shortage'
+                    WHEN s.quantity &gt; s.max_stock THEN 'overstock'
+                    ELSE 'normal'
+                END = #{stockStatus}
+            </if>
+        </where>
+    </select>
+    
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM warehouse_stock s
+        LEFT JOIN warehouse w ON s.warehouse_id = w.id
+        LEFT JOIN product p ON s.product_id = p.id
+        WHERE s.id = #{id}
+    </select>
+    
+    <update id="update" parameterType="com.scm.entity.WarehouseStock">
+        UPDATE warehouse_stock
+        SET quantity = #{quantity},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <insert id="insertRecord">
+        INSERT INTO warehouse_stock_record (
+            stock_id, warehouse_id, product_id, operation_type, quantity,
+            before_quantity, after_quantity,
+            operator_id, operator_name, operation_time
+        ) VALUES (
+            #{stockId}, 
+            (SELECT warehouse_id FROM warehouse_stock WHERE id = #{stockId}),
+            (SELECT product_id FROM warehouse_stock WHERE id = #{stockId}),
+            'adjust', #{quantity},
+            (SELECT quantity FROM warehouse_stock WHERE id = #{stockId}),
+            #{afterQuantity},
+            #{operatorId}, #{operatorName}, NOW()
+        )
+    </insert>
+</mapper> 

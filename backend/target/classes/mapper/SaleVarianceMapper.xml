@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scm.mapper.SaleVarianceMapper">
+    <select id="selectList" resultType="com.scm.entity.SaleVariance">
+        SELECT 
+            v.*,
+            o.order_no as orderNo,
+            v.customer_name as customerName,
+            h.name as handlerName
+        FROM sale_variance v
+        LEFT JOIN sale_order o ON v.order_id = o.id
+        LEFT JOIN handler h ON v.handler_id = h.id
+        <where>
+            <if test="varianceNo != null and varianceNo != ''">
+                AND v.variance_no LIKE CONCAT('%', #{varianceNo}, '%')
+            </if>
+            <if test="customerName != null and customerName != ''">
+                AND v.customer_name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+            <if test="type != null and type != ''">
+                AND v.type = #{type}
+            </if>
+            <if test="status != null and status != ''">
+                AND v.status = #{status}
+            </if>
+        </where>
+        ORDER BY v.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <select id="selectCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM sale_variance v
+        LEFT JOIN sale_order o ON v.order_id = o.id
+        <where>
+            <if test="varianceNo != null and varianceNo != ''">
+                AND v.variance_no LIKE CONCAT('%', #{varianceNo}, '%')
+            </if>
+            <if test="customerName != null and customerName != ''">
+                AND v.customer_name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+            <if test="type != null and type != ''">
+                AND v.type = #{type}
+            </if>
+            <if test="status != null and status != ''">
+                AND v.status = #{status}
+            </if>
+        </where>
+    </select>
+    
+    <select id="selectById" resultType="com.scm.entity.SaleVariance">
+        SELECT 
+            v.*,
+            o.order_no as orderNo,
+            v.customer_name as customerName,
+            h.name as handlerName
+        FROM sale_variance v
+        LEFT JOIN sale_order o ON v.order_id = o.id
+        LEFT JOIN handler h ON v.handler_id = h.id
+        WHERE v.id = #{id}
+    </select>
+    
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sale_variance (
+            variance_no, order_id, order_no, customer_id, customer_name,
+            type, amount, status, remark, handler_id, handler_name,
+            create_time, update_time
+        ) VALUES (
+            #{varianceNo}, #{orderId}, #{orderNo}, #{customerId}, #{customerName},
+            #{type}, #{amount}, #{status}, #{remark}, #{handlerId}, #{handlerName},
+            NOW(), NOW()
+        )
+    </insert>
+    
+    <update id="update">
+        UPDATE sale_variance
+        <set>
+            <if test="type != null">type = #{type},</if>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="handlerId != null">handler_id = #{handlerId},</if>
+            <if test="handlerName != null">handler_name = #{handlerName},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <update id="updateStatus">
+        UPDATE sale_variance
+        SET status = #{status},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+</mapper> 

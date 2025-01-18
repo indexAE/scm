@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scm.mapper.LogMapper">
+    <!-- 操作日志 -->
+    <insert id="insertOperationLog" parameterType="com.scm.entity.OperationLog">
+        INSERT INTO operation_log (
+            username, operation, method, params, ip, operation_time
+        ) VALUES (
+            #{username}, #{operation}, #{method}, #{params}, #{ip}, #{operationTime}
+        )
+    </insert>
+    
+    <select id="getOperationLogs" resultType="com.scm.entity.OperationLog">
+        SELECT * FROM operation_log
+        <where>
+            <if test="startDate != null">
+                AND operation_time >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND operation_time &lt;= #{endDate}
+            </if>
+        </where>
+        ORDER BY operation_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <select id="getOperationLogCount" resultType="int">
+        SELECT COUNT(*) FROM operation_log
+        <where>
+            <if test="startDate != null">
+                AND operation_time >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND operation_time &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 登录日志 -->
+    <insert id="insertLoginLog" parameterType="com.scm.entity.LoginLog">
+        INSERT INTO login_log (
+            username, ip, status, browser, os, login_time
+        ) VALUES (
+            #{username}, #{ip}, #{status}, #{browser}, #{os}, #{loginTime}
+        )
+    </insert>
+    
+    <select id="getLoginLogs" resultType="com.scm.entity.LoginLog">
+        SELECT * FROM login_log
+        <where>
+            <if test="startDate != null">
+                AND login_time >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND login_time &lt;= #{endDate}
+            </if>
+        </where>
+        ORDER BY login_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <select id="getLoginLogCount" resultType="int">
+        SELECT COUNT(*) FROM login_log
+        <where>
+            <if test="startDate != null">
+                AND login_time >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND login_time &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+</mapper> 

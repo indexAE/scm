@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scm.mapper.RoleMapper">
+    <!-- 基础查询条件 -->
+    <sql id="Base_Where_Clause">
+        <where>
+            <if test="roleName != null and roleName != ''">
+                AND role_name LIKE CONCAT('%', #{roleName}, '%')
+            </if>
+            <if test="roleCode != null and roleCode != ''">
+                AND role_code LIKE CONCAT('%', #{roleCode}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 分页查询角色列表 -->
+    <select id="getRoles" resultType="com.scm.entity.Role">
+        SELECT * FROM role
+        <include refid="Base_Where_Clause"/>
+        ORDER BY id DESC
+        LIMIT #{offset}, #{size}
+    </select>
+    
+    <!-- 查询角色总数 -->
+    <select id="getRolesCount" resultType="long">
+        SELECT COUNT(*) FROM role
+        <include refid="Base_Where_Clause"/>
+    </select>
+    
+    <!-- 根据ID获取角色 -->
+    <select id="getRoleById" resultType="com.scm.entity.Role">
+        SELECT * FROM role WHERE id = #{id}
+    </select>
+    
+    <!-- 添加角色 -->
+    <insert id="addRole" parameterType="com.scm.entity.Role">
+        INSERT INTO role (
+            role_name,
+            role_code,
+            description,
+            status,
+            create_time,
+            update_time
+        ) VALUES (
+            #{roleName},
+            #{roleCode},
+            #{description},
+            #{status},
+            NOW(),
+            NOW()
+        )
+    </insert>
+    
+    <!-- 更新角色 -->
+    <update id="updateRole" parameterType="com.scm.entity.Role">
+        UPDATE role
+        SET role_name = #{roleName},
+            role_code = #{roleCode},
+            description = #{description},
+            status = #{status},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除角色 -->
+    <delete id="deleteRole">
+        DELETE FROM role WHERE id = #{id}
+    </delete>
+    
+    <!-- 根据用户ID获取角色列表 -->
+    <select id="getRolesByUserId" resultType="com.scm.entity.Role">
+        SELECT r.* 
+        FROM role r
+        JOIN user_role ur ON r.id = ur.role_id
+        WHERE ur.user_id = #{userId}
+        AND r.status = 1
+    </select>
+    
+    <!-- 为用户分配角色 -->
+    <insert id="assignRole">
+        INSERT INTO user_role (
+            user_id,
+            role_id,
+            create_time
+        ) VALUES (
+            #{userId},
+            #{roleId},
+            NOW()
+        )
+    </insert>
+    
+    <!-- 移除用户角色 -->
+    <delete id="removeRole">
+        DELETE FROM user_role 
+        WHERE user_id = #{userId} 
+        AND role_id = #{roleId}
+    </delete>
+    
+    <!-- 根据角色编码统计数量 -->
+    <select id="countByRoleCode" resultType="int">
+        SELECT COUNT(*) FROM role WHERE role_code = #{roleCode}
+    </select>
+    
+    <!-- 根据角色编码统计数量(排除自身) -->
+    <select id="countByRoleCodeExcludeId" resultType="int">
+        SELECT COUNT(*) FROM role 
+        WHERE role_code = #{roleCode} 
+        AND id != #{id}
+    </select>
+    
+    <!-- 统计使用该角色的用户数量 -->
+    <select id="countUsersByRoleId" resultType="int">
+        SELECT COUNT(*) FROM user_role WHERE role_id = #{id}
+    </select>
+</mapper> 

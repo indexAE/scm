@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scm.mapper.SaleReturnMapper">
+    
+    <resultMap id="BaseResultMap" type="com.scm.entity.SaleReturn">
+        <id column="id" property="id" />
+        <result column="return_no" property="returnNo" />
+        <result column="order_id" property="orderId" />
+        <result column="order_no" property="orderNo" />
+        <result column="customer_id" property="customerId" />
+        <result column="customer_name" property="customerName" />
+        <result column="total_amount" property="totalAmount" />
+        <result column="status" property="status" />
+        <result column="remark" property="remark" />
+        <result column="handler_id" property="handlerId" />
+        <result column="handler_name" property="handlerName" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <collection property="items" ofType="com.scm.entity.SaleReturnItem">
+            <id column="item_id" property="id" />
+            <result column="return_id" property="returnId" />
+            <result column="product_id" property="productId" />
+            <result column="product_name" property="productName" />
+            <result column="spec" property="spec" />
+            <result column="unit" property="unit" />
+            <result column="quantity" property="quantity" />
+            <result column="unit_price" property="unitPrice" />
+            <result column="total_price" property="totalPrice" />
+            <result column="item_remark" property="remark" />
+            <result column="item_create_time" property="createTime" />
+            <result column="item_update_time" property="updateTime" />
+        </collection>
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        id, return_no, order_id, order_no, customer_id, customer_name, total_amount, 
+        status, remark, handler_id, handler_name, create_time, update_time
+    </sql>
+    
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List" />
+        FROM sale_return
+        <where>
+            <if test="returnNo != null and returnNo != ''">
+                AND return_no LIKE CONCAT('%', #{returnNo}, '%')
+            </if>
+            <if test="customerName != null and customerName != ''">
+                AND customer_name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <select id="selectCount" resultType="int">
+        SELECT COUNT(*)
+        FROM sale_return
+        <where>
+            <if test="returnNo != null and returnNo != ''">
+                AND return_no LIKE CONCAT('%', #{returnNo}, '%')
+            </if>
+            <if test="customerName != null and customerName != ''">
+                AND customer_name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+    
+    <select id="selectCountByDateRange" resultType="int">
+        SELECT COUNT(*)
+        FROM sale_return
+        WHERE create_time BETWEEN #{startTime} AND #{endTime}
+    </select>
+    
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT 
+            r.id, r.return_no, r.order_id, r.order_no, r.customer_id, r.customer_name,
+            r.total_amount, r.status, r.remark, r.handler_id, r.handler_name,
+            r.create_time, r.update_time,
+            i.id as item_id, i.return_id, i.product_id, i.product_name, i.spec, i.unit,
+            i.quantity, i.unit_price, i.total_price, i.remark as item_remark,
+            i.create_time as item_create_time, i.update_time as item_update_time
+        FROM sale_return r
+        LEFT JOIN sale_return_item i ON r.id = i.return_id
+        WHERE r.id = #{id}
+    </select>
+    
+    <select id="selectMaxReturnNoByPrefix" resultType="string">
+        SELECT MAX(return_no)
+        FROM sale_return
+        WHERE return_no LIKE CONCAT(#{prefix}, '%')
+    </select>
+    
+    <insert id="insert" parameterType="com.scm.entity.SaleReturn" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sale_return (
+            return_no, order_id, order_no, customer_id, customer_name, total_amount,
+            status, remark, handler_id, handler_name, create_time, update_time
+        )
+        VALUES (
+            #{returnNo}, #{orderId}, #{orderNo}, #{customerId}, #{customerName}, #{totalAmount},
+            #{status}, #{remark}, #{handlerId}, #{handlerName}, NOW(), NOW()
+        )
+    </insert>
+    
+    <insert id="insertItem" parameterType="com.scm.entity.SaleReturnItem">
+        INSERT INTO sale_return_item (
+            return_id, product_id, product_name, spec, unit,
+            quantity, unit_price, total_price, remark, create_time, update_time
+        )
+        VALUES (
+            #{returnId}, #{productId}, #{productName}, #{spec}, #{unit},
+            #{quantity}, #{unitPrice}, #{totalPrice}, #{remark}, NOW(), NOW()
+        )
+    </insert>
+    
+    <update id="update" parameterType="com.scm.entity.SaleReturn">
+        UPDATE sale_return
+        <set>
+            <if test="customerName != null">customer_name = #{customerName},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="handlerId != null">handler_id = #{handlerId},</if>
+            <if test="handlerName != null">handler_name = #{handlerName},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <update id="updateStatus">
+        UPDATE sale_return
+        SET status = #{status},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteItems">
+        DELETE FROM sale_return_item
+        WHERE return_id = #{returnId}
+    </delete>
+    
+    <delete id="delete">
+        DELETE FROM sale_return
+        WHERE id = #{id}
+    </delete>
+</mapper> 

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scm.mapper.CustomerMapper">
+    <!-- 获取所有客户 -->
+    <select id="findAll" resultType="com.scm.entity.Customer">
+        SELECT * FROM customers
+    </select>
+    
+    <!-- 根据ID获取客户 -->
+    <select id="findById" resultType="com.scm.entity.Customer">
+        SELECT * FROM customers WHERE id = #{id}
+    </select>
+    
+    <!-- 创建客户 -->
+    <insert id="insert" parameterType="com.scm.entity.Customer" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO customers (
+            name, contact, phone, email, address, status, remark, create_time, update_time
+        ) VALUES (
+            #{name}, #{contact}, #{phone}, #{email}, #{address}, #{status}, #{remark}, #{createTime}, #{updateTime}
+        )
+    </insert>
+    
+    <!-- 更新客户 -->
+    <update id="update" parameterType="com.scm.entity.Customer">
+        UPDATE customers
+        SET name = #{name},
+            contact = #{contact},
+            phone = #{phone},
+            email = #{email},
+            address = #{address},
+            status = #{status},
+            remark = #{remark},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除客户 -->
+    <delete id="deleteById">
+        DELETE FROM customers WHERE id = #{id}
+    </delete>
+    
+    <!-- 更新客户状态 -->
+    <update id="updateStatus">
+        UPDATE customers
+        SET status = #{status},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+</mapper> 

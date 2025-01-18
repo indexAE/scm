@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scm.mapper.SaleOrderMapper">
+    
+    <sql id="Base_Column_List">
+        id, order_no, customer_id, customer_name, total_amount, status, remark, 
+        handler_id, handler_name, create_time, update_time
+    </sql>
+    
+    <select id="selectList" resultType="com.scm.entity.SaleOrder">
+        SELECT 
+        <include refid="Base_Column_List" />
+        FROM sale_order
+        <where>
+            <if test="orderNo != null and orderNo != ''">
+                AND order_no LIKE CONCAT('%', #{orderNo}, '%')
+            </if>
+            <if test="customerName != null and customerName != ''">
+                AND customer_name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <select id="selectCount" resultType="int">
+        SELECT COUNT(*)
+        FROM sale_order
+        <where>
+            <if test="orderNo != null and orderNo != ''">
+                AND order_no LIKE CONCAT('%', #{orderNo}, '%')
+            </if>
+            <if test="customerName != null and customerName != ''">
+                AND customer_name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+    
+    <select id="selectCountByDateRange" resultType="int">
+        SELECT COUNT(*)
+        FROM sale_order
+        WHERE create_time BETWEEN #{startTime} AND #{endTime}
+    </select>
+    
+    <resultMap id="OrderDetailMap" type="com.scm.entity.SaleOrder">
+        <id column="id" property="id" />
+        <result column="order_no" property="orderNo" />
+        <result column="customer_id" property="customerId" />
+        <result column="customer_name" property="customerName" />
+        <result column="total_amount" property="totalAmount" />
+        <result column="status" property="status" />
+        <result column="remark" property="remark" />
+        <result column="handler_id" property="handlerId" />
+        <result column="handler_name" property="handlerName" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <collection property="items" ofType="com.scm.entity.SaleOrderItem">
+            <id column="item_id" property="id" />
+            <result column="product_id" property="productId" />
+            <result column="product_name" property="productName" />
+            <result column="spec" property="spec" />
+            <result column="unit" property="unit" />
+            <result column="quantity" property="quantity" />
+            <result column="unit_price" property="unitPrice" />
+            <result column="total_price" property="totalPrice" />
+        </collection>
+    </resultMap>
+    
+    <select id="selectById" resultMap="OrderDetailMap">
+        SELECT 
+            o.id, o.order_no, o.customer_id, o.customer_name, o.total_amount, 
+            o.status, o.remark, o.handler_id, o.handler_name, o.create_time, o.update_time,
+            i.id as item_id, i.product_id, i.product_name, i.spec, i.unit,
+            i.quantity, i.unit_price, i.total_price
+        FROM sale_order o
+        LEFT JOIN sale_order_item i ON o.id = i.order_id
+        WHERE o.id = #{id}
+        ORDER BY i.id
+    </select>
+    
+    <select id="selectMaxOrderNoByPrefix" resultType="string">
+        SELECT MAX(order_no)
+        FROM sale_order
+        WHERE order_no LIKE CONCAT(#{prefix}, '%')
+    </select>
+    
+    <insert id="insert" parameterType="com.scm.entity.SaleOrder" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sale_order (
+            order_no, customer_id, customer_name, total_amount, status, remark,
+            handler_id, handler_name, create_time, update_time
+        )
+        VALUES (
+            #{orderNo}, #{customerId}, #{customerName}, #{totalAmount}, #{status}, #{remark},
+            #{handlerId}, #{handlerName}, NOW(), NOW()
+        )
+    </insert>
+    
+    <insert id="insertItem" parameterType="com.scm.entity.SaleOrderItem">
+        INSERT INTO sale_order_item (
+            order_id, product_id, product_name, spec, unit,
+            quantity, unit_price, total_price
+        )
+        VALUES (
+            #{orderId}, #{productId}, #{productName}, #{spec}, #{unit},
+            #{quantity}, #{unitPrice}, #{totalPrice}
+        )
+    </insert>
+    
+    <update id="update" parameterType="com.scm.entity.SaleOrder">
+        UPDATE sale_order
+        <set>
+            <if test="customerName != null">customer_name = #{customerName},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="handlerId != null">handler_id = #{handlerId},</if>
+            <if test="handlerName != null">handler_name = #{handlerName},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <update id="updateStatus">
+        UPDATE sale_order
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteItems">
+        DELETE FROM sale_order_item
+        WHERE order_id = #{orderId}
+    </delete>
+    
+    <delete id="delete">
+        DELETE FROM sale_order
+        WHERE id = #{id}
+    </delete>
+</mapper> 

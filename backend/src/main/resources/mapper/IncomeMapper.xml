@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scm.mapper.IncomeMapper">
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.scm.entity.Income">
+        <id column="id" property="id"/>
+        <result column="income_no" property="incomeNo"/>
+        <result column="type" property="type"/>
+        <result column="amount" property="amount"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, income_no, type, amount, status, remark, create_time, update_time
+    </sql>
+
+    <!-- 查询条件 -->
+    <sql id="Query_Condition">
+        <where>
+            <if test="incomeNo != null and incomeNo != ''">
+                AND income_no LIKE CONCAT('%', #{incomeNo}, '%')
+            </if>
+            <if test="type != null and type != ''">
+                AND type = #{type}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 获取收入列表 -->
+    <select id="getList" parameterType="map" resultType="com.scm.entity.Income">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM income
+        <include refid="Query_Condition"/>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 获取收入总数 -->
+    <select id="getTotal" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM income
+        <include refid="Query_Condition"/>
+    </select>
+
+    <!-- 根据ID获取收入 -->
+    <select id="getById" resultType="com.scm.entity.Income">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM income
+        WHERE id = #{id}
+    </select>
+
+    <!-- 新增收入 -->
+    <insert id="insert" parameterType="com.scm.entity.Income" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO income (
+            income_no, type, amount, status, remark, create_time, update_time
+        ) VALUES (
+            #{incomeNo}, #{type}, #{amount}, #{status}, #{remark}, NOW(), NOW()
+        )
+    </insert>
+
+    <!-- 更新收入 -->
+    <update id="update" parameterType="com.scm.entity.Income">
+        UPDATE income
+        <set>
+            <if test="type != null">
+                type = #{type},
+            </if>
+            <if test="amount != null">
+                amount = #{amount},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新收入状态 -->
+    <update id="updateStatus">
+        UPDATE income
+        SET status = #{status},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectByDateRange" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from income
+        where DATE(create_time) between #{startDate} and #{endDate}
+        and status = 'confirmed'
+    </select>
+</mapper> 
