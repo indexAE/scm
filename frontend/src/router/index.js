@@ -11,6 +11,7 @@ import OperationLog from '../views/OperationLog.vue'
 import LoginLog from '../views/LoginLog.vue'
 import SupplierManage from '../views/SupplierManage.vue'
 import CustomerManage from '../views/CustomerManage.vue'
+import PermissionManage from '../views/PermissionManage.vue'
 
 const routes = [
   {
@@ -46,6 +47,11 @@ const routes = [
         path: 'roles',
         name: 'RoleManage',
         component: RoleManage
+      },
+      {
+        path: 'permissions',
+        name: 'PermissionManage',
+        component: PermissionManage
       },
       {
         path: 'profile',
@@ -338,6 +344,53 @@ const routes = [
             name: 'FinanceReport',
             component: () => import('@/views/finance/report/index.vue'),
             meta: { title: '财务报表' }
+          }
+        ]
+      },
+      {
+        path: 'logistics',
+        name: 'Logistics',
+        component: () => import('@/views/logistics/index.vue'),
+        redirect: 'logistics/shipment',
+        meta: { title: '物流管理', icon: 'Van' },
+        children: [
+          {
+            path: 'shipment',
+            name: 'Shipment',
+            component: () => import('@/views/logistics/shipment/index.vue'),
+            meta: { title: '发货管理' }
+          },
+          {
+            path: 'shipment/form',
+            name: 'ShipmentForm',
+            component: () => import('@/views/logistics/shipment/form.vue'),
+            meta: { title: '新增发货', activeMenu: '/dashboard/logistics/shipment' },
+            hidden: true
+          },
+          {
+            path: 'tracking',
+            name: 'Tracking',
+            component: () => import('@/views/logistics/tracking/index.vue'),
+            meta: { title: '物流跟踪' }
+          },
+          {
+            path: 'tracking/detail',
+            name: 'TrackingDetail',
+            component: () => import('@/views/logistics/tracking/detail.vue'),
+            meta: { title: '跟踪详情', activeMenu: '/dashboard/logistics/tracking' },
+            hidden: true
+          },
+          {
+            path: 'carrier',
+            name: 'Carrier',
+            component: () => import('@/views/logistics/carrier/index.vue'),
+            meta: { title: '承运商管理' }
+          },
+          {
+            path: 'carrier/form',
+            name: 'CarrierForm',
+            component: () => import('@/views/logistics/carrier/form.vue'),
+            meta: { title: '承运商表单' }
           }
         ]
       }

@@ -4,6 +4,24 @@ export default [
     meta: { title: '首页', icon: 'House' }
   },
   {
+    path: '/dashboard/users',
+    meta: { title: '用户管理', icon: 'User' },
+    children: [
+      {
+        path: '/dashboard/users',
+        meta: { title: '用户列表' }
+      },
+      {
+        path: '/dashboard/roles',
+        meta: { title: '角色管理' }
+      },
+      {
+        path: '/dashboard/permissions',
+        meta: { title: '权限管理' }
+      }
+    ]
+  },
+  {
     path: '/dashboard/basic',
     meta: { title: '基础数据', icon: 'DataLine' },
     children: [
@@ -102,6 +120,25 @@ export default [
         path: '/dashboard/warehouse/stock',
         name: 'WarehouseStock',
         meta: { title: '库存管理', icon: 'el-icon-box' }
+      }
+    ]
+  },
+  // 物流管理
+  {
+    path: '/dashboard/logistics',
+    meta: { title: '物流管理', icon: 'Van' },
+    children: [
+      {
+        path: 'shipment',
+        meta: { title: '发货管理' }
+      },
+      {
+        path: 'tracking',
+        meta: { title: '物流跟踪' }
+      },
+      {
+        path: 'carrier',
+        meta: { title: '承运商管理' }
       }
     ]
   },

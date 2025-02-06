@@ -81,6 +81,7 @@
             </template>
             <el-menu-item index="/dashboard/users">用户列表</el-menu-item>
             <el-menu-item index="/dashboard/roles">角色管理</el-menu-item>
+            <el-menu-item index="/dashboard/permissions">权限管理</el-menu-item>
           </el-sub-menu>
 
           <el-sub-menu index="3">
@@ -169,6 +170,16 @@
             <el-menu-item index="/dashboard/finance/report">财务报表</el-menu-item>
           </el-sub-menu>
 
+          <!-- 物流管理 -->
+          <el-sub-menu index="11">
+            <template #title>
+              <el-icon><van /></el-icon>
+              <span>物流管理</span>
+            </template>
+            <el-menu-item index="/dashboard/logistics/shipment">发货管理</el-menu-item>
+            <el-menu-item index="/dashboard/logistics/tracking">物流跟踪</el-menu-item>
+          </el-sub-menu>
+
           <el-sub-menu index="10">
             <template #title>
               <el-icon><document-icon /></el-icon>
@@ -212,7 +223,8 @@ import {
   Fold,
   Expand,
   Bell,
-  Money
+  Money,
+  Van
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useSettingsStore } from '../stores/settings'
@@ -232,6 +244,7 @@ const visitedViews = ref([
 const routeTitleMap = {
   'users': '用户管理',
   'roles': '角色管理',
+  'permissions': '权限管理',
   'notice': '公告通知',
   'list': '通知列表',
   'publish': '发布通知',
@@ -246,6 +259,10 @@ const routeTitleMap = {
   'info': '商品信息',
   'category': '分类管理',
   'pricing': '定价管理',
+  'logistics': '物流管理',
+  'shipment': '发货管理',
+  'tracking': '物流跟踪',
+  'carrier': '承运商管理',
   'purchase': '采购管理',
   'requisition': '采购申请',
   'order': '订单管理',

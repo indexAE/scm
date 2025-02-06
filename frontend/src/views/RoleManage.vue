@@ -52,8 +52,14 @@
             <el-button size="small" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button 
               size="small" 
+              type="primary"
+              @click="handleAssignPermissions(scope.row)"
+            >分配权限</el-button>
+            <el-button 
+              size="small" 
               type="danger" 
-              @click="handleDelete(scope.row)">删除</el-button>
+              @click="handleDelete(scope.row)"
+            >删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -105,12 +111,46 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 权限分配对话框 -->
+    <el-dialog
+      v-model="permissionDialogVisible"
+      :title="'分配权限 - ' + currentRole.roleName"
+      width="50%"
+    >
+      <el-tree
+        ref="permissionTree"
+        :data="permissionTreeData"
+        :props="defaultProps"
+        show-checkbox
+        node-key="id"
+        :default-checked-keys="selectedPermissions"
+        @check="handlePermissionChange"
+      >
+        <template #default="{ data }">
+          <span class="custom-tree-node">
+            <span>{{ data.permissionName }}</span>
+            <span class="permission-code">{{ data.permissionCode }}</span>
+          </span>
+        </template>
+      </el-tree>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="permissionDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleSavePermissions">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { usePermissionStore } from '../stores/permission'
+
+// 获取权限store
+const permissionStore = usePermissionStore()
 
 // 角色列表数据
 const roles = ref([])
@@ -151,6 +191,54 @@ const rules = {
   description: [
     { max: 200, message: '描述不能超过200个字符', trigger: 'blur' }
   ]
+}
+
+// 权限分配相关数据
+const permissionDialogVisible = ref(false)
+const currentRole = ref({})
+const selectedPermissions = ref([])
+const permissionTree = ref(null)
+
+// 权限树配置
+const defaultProps = {
+  children: 'children',
+  label: 'permissionName'
+}
+
+// 构建权限树数据
+const permissionTreeData = computed(() => {
+  return buildPermissionTree(permissionStore.permissions)
+})
+
+// 构建树形结构
+const buildPermissionTree = (permissions) => {
+  const tree = []
+  const map = {}
+  
+  // 首先创建所有节点的映射
+  permissions.forEach(permission => {
+    map[permission.id] = {
+      ...permission,
+      children: []
+    }
+  })
+  
+  // 构建树结构
+  permissions.forEach(permission => {
+    const node = map[permission.id]
+    if (permission.parentId) {
+      const parent = map[permission.parentId]
+      if (parent) {
+        parent.children.push(node)
+      } else {
+        tree.push(node)
+      }
+    } else {
+      tree.push(node)
+    }
+  })
+  
+  return tree
 }
 
 // 获取角色列表
@@ -301,6 +389,27 @@ const handleDelete = (row) => {
       ElMessage.error('网络错误,请稍后重试')
     }
   })
+}
+
+// 打开权限分配对话框
+const handleAssignPermissions = (role) => {
+  currentRole.value = role
+  // 获取角色当前的权限
+  selectedPermissions.value = permissionStore.rolePermissions[role.roleCode] || []
+  permissionDialogVisible.value = true
+}
+
+// 处理权限变更
+const handlePermissionChange = () => {
+  const checkedNodes = permissionTree.value.getCheckedNodes()
+  selectedPermissions.value = checkedNodes.map(node => node.permissionCode)
+}
+
+// 保存权限配置
+const handleSavePermissions = () => {
+  permissionStore.updateRolePermissions(currentRole.value.roleCode, selectedPermissions.value)
+  ElMessage.success('权限配置已保存')
+  permissionDialogVisible.value = false
 }
 
 // 提交表单
